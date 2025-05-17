@@ -254,6 +254,7 @@ const TripBoard = () => {
         const emptyDayMsg = document.createElement('p');
         emptyDayMsg.textContent = 'No activities planned for this day';
         emptyDayMsg.style.fontStyle = 'italic';
+        emptyDayMsg.style.color = '#000000';
         daySection.appendChild(emptyDayMsg);
       } else {
         day.activities.forEach(activity => {
