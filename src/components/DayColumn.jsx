@@ -13,9 +13,8 @@ import {
   ArrowsUpDownIcon,
 } from '@heroicons/react/24/outline';
 import { useLayoutEffect } from 'react';
-
-
-
+import LocationTimezoneInput from './LocationTimezoneInput';
+import { showConfirmToast } from './CustomToast';
 
 const DayColumn = ({ day, index }) => {
   const { removeDay, addActivity, formatDayDate } = useTrip();
@@ -52,6 +51,13 @@ const DayColumn = ({ day, index }) => {
     }));
   };
   
+  const handleLocationTimezoneChange = (field, value) => {
+    setNewActivity(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
   const handleAddActivity = () => {
     // Only add if title is not empty
     if (newActivity.title.trim() !== '') {
@@ -61,9 +67,12 @@ const DayColumn = ({ day, index }) => {
   };
   
   const handleDeleteDay = () => {
-    if (window.confirm('Are you sure you want to delete this day?')) {
-      removeDay(day.id);
-    }
+    showConfirmToast(
+      'Delete Day',
+      `Are you sure you want to delete ${formatDayDate(day.date)}?`,
+      () => removeDay(day.id),
+      null
+    );
   };
   
   const handleDragStart = () => {
@@ -103,7 +112,6 @@ const weather = getWeatherInfo();
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          // style={{background: `linear-gradient(135deg, #a3f7bf, #d3cce3)`}}
           className={`flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200  dark:from-[#0f2027] dark:via-[#203a43] dark:to-[#2c5364] w-96 h-full bg-white dark:bg-gray-900 rounded-2xl shadow-card dark:border-gray-700 flex flex-col transition-all duration-300 ${
             snapshot.isDragging ? 'scale-[1.02] shadow-lg z-50' : ''
           } ${isDragging ? 'opacity-90' : ''} hover:shadow-card-hover`}
@@ -214,32 +222,12 @@ const weather = getWeatherInfo();
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div>
-                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Location</label>
-                        <input
-                          type="text"
-                          name="location"
-                          value={newActivity.location}
-                          onChange={handleChange}
-                          placeholder="Activity location"
-                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Timezone</label>
-                        <select
-                          name="timezone"
-                          value={newActivity.timezone}
-                          onChange={handleChange}
-                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                        >
-                          <option value="local">Local Time</option>
-                          <option value="destination">Destination Time</option>
-                          <option value="home">Home Time</option>
-                        </select>
-                      </div>
-                    </div>
+                    {/* Integrated location and timezone input */}
+                    <LocationTimezoneInput 
+                      location={newActivity.location}
+                      timezone={newActivity.timezone}
+                      onChange={handleLocationTimezoneChange}
+                    />
                     
                     <div className="mb-3">
                       <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</label>

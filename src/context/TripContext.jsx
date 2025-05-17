@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
+import { showActivityReminder } from '../components/CustomToast';
+import { isActivityComingSoon } from '../utils/activityUtils';
 
 const TripContext = createContext();
 
@@ -118,14 +120,14 @@ const defaultTrip = {
 export const TripProvider = ({ children }) => {
   const [trips, setTrips] = useState(() => {
     const savedTrips = localStorage.getItem('trips');
-    if (!savedTrips) return [defaultTrip];
+    if (!savedTrips) return [];
     
     try {
       const parsedTrips = JSON.parse(savedTrips);
-      return Array.isArray(parsedTrips) && parsedTrips.length > 0 ? parsedTrips : [defaultTrip];
+      return Array.isArray(parsedTrips) && parsedTrips.length > 0 ? parsedTrips : [];
     } catch (error) {
       console.error('Error parsing saved trips:', error);
-      return [defaultTrip];
+      return [];
     }
   });
   
@@ -136,6 +138,7 @@ export const TripProvider = ({ children }) => {
 
   const currentTrip = trips.find(trip => trip.id === currentTripId) || trips[0];
 
+  // Save trips to localStorage when they change
   useEffect(() => {
     try {
       localStorage.setItem('trips', JSON.stringify(trips));
@@ -144,11 +147,61 @@ export const TripProvider = ({ children }) => {
     }
   }, [trips]);
 
+  // Save current trip ID to localStorage when it changes
   useEffect(() => {
     if (currentTripId) {
       localStorage.setItem('currentTripId', currentTripId);
     }
   }, [currentTripId]);
+
+  // Check for upcoming activities every minute
+  useEffect(() => {
+    if (!currentTrip) return;
+    
+    const checkUpcomingActivities = () => {
+      currentTrip.days.forEach(day => {
+        day.activities.forEach(activity => {
+          if (isActivityComingSoon(activity, day.date)) {
+            showActivityReminder(
+              currentTrip.name,
+              activity.title,
+              activity.time
+            );
+          }
+        });
+      });
+    };
+    
+    // Initial check
+    checkUpcomingActivities();
+    
+    // Set up interval
+    const intervalId = setInterval(checkUpcomingActivities, 60000); // Check every minute
+    
+    return () => clearInterval(intervalId);
+  }, [currentTrip]);
+
+  // Load the default example trip
+  const loadDefaultTrip = () => {
+    const newDefaultTrip = {
+      ...defaultTrip,
+      id: uuidv4(),
+      startDate: new Date(),
+      endDate: new Date(new Date().setDate(new Date().getDate() + 3)),
+      days: defaultTrip.days.map((day, index) => ({
+        ...day,
+        id: uuidv4(),
+        date: new Date(new Date().setDate(new Date().getDate() + index)),
+        activities: day.activities.map(activity => ({
+          ...activity,
+          id: uuidv4()
+        }))
+      }))
+    };
+    
+    setTrips(prev => [...prev, newDefaultTrip]);
+    setCurrentTripId(newDefaultTrip.id);
+  };
 
   // Create a new trip
   const createTrip = (tripData) => {
@@ -204,16 +257,32 @@ export const TripProvider = ({ children }) => {
     setTrips(prev => 
       prev.map(trip => {
         if (trip.id === currentTripId) {
+          const newDay = {
+            id: uuidv4(),
+            date,
+            activities: [],
+          };
+          
+          // Create a new array with all days including the new one
+          const updatedDays = [...trip.days];
+          
+          // Find the correct position to insert the new day based on date
+          const newDayTime = new Date(date).getTime();
+          let insertIndex = updatedDays.findIndex(day => 
+            new Date(day.date).getTime() > newDayTime
+          );
+          
+          // If no day with a later date is found, append to the end
+          if (insertIndex === -1) {
+            insertIndex = updatedDays.length;
+          }
+          
+          // Insert the new day at the correct position
+          updatedDays.splice(insertIndex, 0, newDay);
+          
           return {
             ...trip,
-            days: [
-              ...trip.days,
-              {
-                id: uuidv4(),
-                date,
-                activities: [],
-              }
-            ]
+            days: updatedDays
           };
         }
         return trip;
@@ -248,10 +317,8 @@ export const TripProvider = ({ children }) => {
                 return {
                   ...day,
                   activities: [...day.activities, { 
-                    ...activity, 
+                    ...activity,
                     id: uuidv4(),
-                    location: activity.location || '',
-                    timezone: activity.timezone || 'local'
                   }]
                 };
               }
@@ -276,7 +343,9 @@ export const TripProvider = ({ children }) => {
                 return {
                   ...day,
                   activities: day.activities.map(activity => 
-                    activity.id === activityId ? { ...activity, ...updatedActivity } : activity
+                    activity.id === activityId 
+                      ? { ...activity, ...updatedActivity }
+                      : activity
                   )
                 };
               }
@@ -312,99 +381,96 @@ export const TripProvider = ({ children }) => {
     );
   };
 
-  // Handle drag-and-drop reordering
+  // Helper function to sort days by date
+  const sortDaysByDate = (days) => {
+    return [...days].sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+  };
+
+  // Handle drag and drop of activities
   const onDragEnd = (result) => {
     const { source, destination } = result;
     
-    // If dropped outside a droppable area
-    if (!destination) {
-      return;
-    }
+    // Dropped outside a droppable area
+    if (!destination) return;
     
-    // If dropped in the same position
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
-    
-    // Get the current trip from state
-    const trip = trips.find(trip => trip.id === currentTripId);
-    if (!trip) return;
-    
-    // Find the source and destination day
-    const sourceDay = trip.days.find(day => day.id === source.droppableId);
-    const destDay = trip.days.find(day => day.id === destination.droppableId);
-    
-    // If source day not found
-    if (!sourceDay) return;
-    
-    // Create a new version of the days array
-    const newDays = [...trip.days];
-    
-    // If moving within the same day (reordering activities)
+    // Moving within the same day
     if (source.droppableId === destination.droppableId) {
-      const dayIndex = newDays.findIndex(day => day.id === source.droppableId);
-      if (dayIndex === -1) return;
-      
-      const newActivities = [...newDays[dayIndex].activities];
-      const [moved] = newActivities.splice(source.index, 1);
-      newActivities.splice(destination.index, 0, moved);
-      
-      newDays[dayIndex] = {
-        ...newDays[dayIndex],
-        activities: newActivities,
-      };
-    } else {
-      // Moving between different days
-      // Find the indices of the source and destination days
-      const sourceDayIndex = newDays.findIndex(day => day.id === source.droppableId);
-      const destDayIndex = newDays.findIndex(day => day.id === destination.droppableId);
-      if (sourceDayIndex === -1 || destDayIndex === -1) return;
-      
-      // Create new activity arrays
-      const sourceActivities = [...newDays[sourceDayIndex].activities];
-      const destActivities = [...newDays[destDayIndex].activities];
-      
-      // Remove the activity from the source day
-      const [movedActivity] = sourceActivities.splice(source.index, 1);
-      
-      // Add the activity to the destination day
-      destActivities.splice(destination.index, 0, movedActivity);
-      
-      // Update the days with the new activity arrays
-      newDays[sourceDayIndex] = {
-        ...newDays[sourceDayIndex],
-        activities: sourceActivities,
-      };
-      
-      newDays[destDayIndex] = {
-        ...newDays[destDayIndex],
-        activities: destActivities,
-      };
+      setTrips(prev => 
+        prev.map(trip => {
+          if (trip.id === currentTripId) {
+            return {
+              ...trip,
+              days: trip.days.map(day => {
+                if (day.id === source.droppableId) {
+                  const newActivities = Array.from(day.activities);
+                  const [movedActivity] = newActivities.splice(source.index, 1);
+                  newActivities.splice(destination.index, 0, movedActivity);
+                  
+                  return {
+                    ...day,
+                    activities: newActivities
+                  };
+                }
+                return day;
+              })
+            };
+          }
+          return trip;
+        })
+      );
+    } 
+    // Moving to a different day
+    else {
+      setTrips(prev => 
+        prev.map(trip => {
+          if (trip.id === currentTripId) {
+            // Find the source and destination days
+            const sourceDay = trip.days.find(day => day.id === source.droppableId);
+            const destDay = trip.days.find(day => day.id === destination.droppableId);
+            
+            if (!sourceDay || !destDay) return trip;
+            
+            // Copy the activity being moved
+            const activityToMove = { ...sourceDay.activities[source.index] };
+            
+            // Create new arrays for both days' activities
+            const newSourceActivities = Array.from(sourceDay.activities);
+            newSourceActivities.splice(source.index, 1);
+            
+            const newDestActivities = Array.from(destDay.activities);
+            newDestActivities.splice(destination.index, 0, activityToMove);
+            
+            // Update the days
+            return {
+              ...trip,
+              days: trip.days.map(day => {
+                if (day.id === source.droppableId) {
+                  return { ...day, activities: newSourceActivities };
+                }
+                if (day.id === destination.droppableId) {
+                  return { ...day, activities: newDestActivities };
+                }
+                return day;
+              })
+            };
+          }
+          return trip;
+        })
+      );
     }
-    
-    // Update the trip with the new days
-    setTrips(
-      trips.map(t => 
-        t.id === currentTripId ? { ...t, days: newDays } : t
-      )
-    );
   };
 
-  // Add function to reorder days 
+  // Reorder days
   const reorderDays = (sourceIndex, destinationIndex) => {
     setTrips(prev => 
       prev.map(trip => {
         if (trip.id === currentTripId) {
-          const newDays = [...trip.days];
-          const [movedDay] = newDays.splice(sourceIndex, 1);
-          newDays.splice(destinationIndex, 0, movedDay);
-          
+          // Sort days by date to maintain chronological order
           return {
             ...trip,
-            days: newDays
+            days: sortDaysByDate(trip.days)
           };
         }
         return trip;
@@ -412,40 +478,49 @@ export const TripProvider = ({ children }) => {
     );
   };
 
+  // Format day date for display
   const formatDayDate = (date) => {
-    try {
-      return format(new Date(date), 'EEEE, MMM d');
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid date';
+    if (!date) return '';
+    
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    
+    const dateObj = new Date(date);
+    
+    if (dateObj.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (dateObj.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return format(dateObj, 'EEE, MMM d');
     }
   };
 
-  const value = {
-    trips,
-    currentTripId,
-    currentTrip,
-    setCurrentTripId,
-    createTrip,
-    updateTrip,
-    deleteTrip,
-    addDay,
-    removeDay,
-    addActivity,
-    updateActivity,
-    removeActivity,
-    onDragEnd,
-    reorderDays,
-    formatDayDate
-  };
-
-  return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
+  return (
+    <TripContext.Provider value={{
+      trips,
+      currentTrip,
+      currentTripId,
+      setCurrentTripId,
+      createTrip,
+      updateTrip,
+      deleteTrip,
+      addDay,
+      removeDay,
+      addActivity,
+      updateActivity,
+      removeActivity,
+      onDragEnd,
+      reorderDays,
+      formatDayDate,
+      loadDefaultTrip
+    }}>
+      {children}
+    </TripContext.Provider>
+  );
 };
 
 export const useTrip = () => {
-  const context = useContext(TripContext);
-  if (!context) {
-    throw new Error('useTrip must be used within a TripProvider');
-  }
-  return context;
+  return useContext(TripContext);
 }; 

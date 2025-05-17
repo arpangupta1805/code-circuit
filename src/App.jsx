@@ -6,6 +6,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MoonIcon, SunIcon, GlobeAltIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import './animations.css';
+import { useNotificationPermission } from './components/CustomToast';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -20,6 +21,9 @@ function App() {
   
   const [showSidebar, setShowSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // Request notification permission
+  useNotificationPermission();
   
   // Handle screen resize
   useEffect(() => {

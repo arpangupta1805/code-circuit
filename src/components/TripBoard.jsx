@@ -32,9 +32,14 @@ import {
   SunIcon,
   MoonIcon,
   CloudIcon,
-  TruckIcon
+  TruckIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import html2pdf from 'html2pdf.js';
+import { showConfirmToast } from '../components/CustomToast';
 
 // Popular destinations with their countries to enable filtering
 const popularDestinations = [
@@ -80,7 +85,10 @@ const TripBoard = () => {
     onDragEnd, 
     addDay,
     formatDayDate,
-    reorderDays
+    reorderDays,
+    removeDay,
+    updateActivity,
+    removeActivity
   } = useTrip();
   const [newDayDate, setNewDayDate] = useState(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -94,6 +102,18 @@ const TripBoard = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [selectedDayId, setSelectedDayId] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // Get timezone icon for the list view
+  const getTimezoneIcon = (activity) => {
+    switch (activity.timezone) {
+      case 'destination':
+        return <GlobeAltIcon className="w-4 h-4 text-blue-500 dark:text-blue-400" />;
+      case 'home':
+        return <HomeIcon className="w-4 h-4 text-green-500 dark:text-green-400" />;
+      default:
+        return <ClockIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />;
+    }
+  };
   
   // Update form when current trip changes
   useEffect(() => {
@@ -175,10 +195,10 @@ const TripBoard = () => {
   const exportToPDF = () => {
     // Create a stylized HTML representation of the trip
     const container = document.createElement('div');
-    container.style.padding = '20px';
+    container.style.padding = '10px';
     container.style.fontFamily = 'Arial, sans-serif';
     container.style.maxWidth = '800px';
-    container.style.margin = '0 auto';
+    container.style.margin = '20px 20px';
     
     // Add header
     const header = document.createElement('h1');
@@ -289,7 +309,7 @@ const TripBoard = () => {
     
     // Convert to PDF
     const opt = {
-      margin: 10,
+      margin: 15,
       filename: `${currentTrip.name} - Itinerary.pdf`,
       image: { type: 'jpeg', quality: 1 },
       html2canvas: { scale: 2 },
@@ -545,25 +565,45 @@ const TripBoard = () => {
           </DragDropContext>
         ) : (
           <div className="overflow-y-auto h-full pb-4">
-            <div className="space-y-4 px-4">
+            <div className="space-y-6 px-4">
               {currentTrip.days.map((day, index) => (
                 <div 
                   key={day.id}
-                  className={`rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 ${
-                    selectedDayId === day.id ? 'shadow-lg' : 'shadow'
+                  className={`rounded-xl overflow-hidden transition-all duration-300 shadow-card ${
+                    selectedDayId === day.id ? 'shadow-card-hover transform scale-[1.01]' : ''
                   }`}
                 >
                   <div 
-                    className={`p-4 bg-white dark:bg-gray-800 cursor-pointer flex justify-between items-center ${
-                      selectedDayId === day.id ? 'border-b border-gray-200 dark:border-gray-700' : ''
-                    }`}
+                    className={`p-4 cursor-pointer flex justify-between items-center bg-gradient-to-r ${
+                      index % 3 === 0 ? 'from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40' :
+                      index % 3 === 1 ? 'from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40' :
+                      'from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40'
+                    } border-b border-blue-200/50 dark:border-gray-700`}
                     onClick={() => handleDaySelect(day.id)}
                   >
-                    <div>
-                      <h3 className="font-semibold text-lg">{formatDayDate(day.date)}</h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
-                        {day.activities.length} {day.activities.length === 1 ? 'activity' : 'activities'}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-full bg-white/70 dark:bg-gray-800/70 shadow-inner flex items-center justify-center ${
+                        index % 3 === 0 ? 'text-blue-600 dark:text-blue-400' :
+                        index % 3 === 1 ? 'text-amber-600 dark:text-amber-400' :
+                        'text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        <CalendarIcon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800 dark:text-white">{formatDayDate(day.date)}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            day.activities.length > 0 
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                          }`}>
+                            {day.activities.length} {day.activities.length === 1 ? 'activity' : 'activities'}
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400 text-xs">
+                            {format(new Date(day.date), 'EEEE, MMMM d')}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {selectedDayId === day.id ? (
@@ -572,75 +612,203 @@ const TripBoard = () => {
                             e.stopPropagation();
                             setSelectedDayId(null);
                           }}
-                          className="text-gray-500 dark:text-gray-400"
+                          className={`p-2 rounded-full hover:bg-white/50 dark:hover:bg-gray-700/50 ${
+                            index % 3 === 0 ? 'text-blue-600 dark:text-blue-400' :
+                            index % 3 === 1 ? 'text-amber-600 dark:text-amber-400' :
+                            'text-emerald-600 dark:text-emerald-400'
+                          }`}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
+                          <ChevronUpIcon className="h-5 w-5" />
                         </button>
                       ) : (
-                        <button className="text-gray-500 dark:text-gray-400">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                          </svg>
+                        <button 
+                          className={`p-2 rounded-full hover:bg-white/50 dark:hover:bg-gray-700/50 ${
+                            index % 3 === 0 ? 'text-blue-600 dark:text-blue-400' :
+                            index % 3 === 1 ? 'text-amber-600 dark:text-amber-400' :
+                            'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
+                          <ChevronDownIcon className="h-5 w-5" />
                         </button>
                       )}
                     </div>
                   </div>
                   
                   {selectedDayId === day.id && (
-                    <div className="p-6 bg-gradient-to-br from-sky-50 via-white to-blue-100 dark:from-gray-800 dark:to-gray-900 border-t border-b border-blue-100 dark:border-gray-700">
-                      <div className="mb-3 flex items-center gap-2">
-                        <span className="text-sky-600 dark:text-sky-400 font-semibold">Activities</span>
-                        <span className="text-xs text-gray-400">{formatDayDate(day.date)}</span>
+                    <div className="p-6 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 animate-fade-in">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`${
+                            index % 3 === 0 ? 'text-blue-600 dark:text-blue-400' :
+                            index % 3 === 1 ? 'text-amber-600 dark:text-amber-400' :
+                            'text-emerald-600 dark:text-emerald-400'
+                          } font-semibold`}>Activities</span>
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                            {format(new Date(day.date), 'EEEE, MMMM d')}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => removeDay(day.id)}
+                          className="p-1 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30"
+                          title="Delete day"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
                       </div>
                       <div className="space-y-3">
                         {day.activities.length === 0 ? (
-                          <div className="text-center text-gray-400 py-6">
-                            <span className="inline-block mb-2">
-                              <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-7h2v5h-2v-5zm0-4h2v2h-2V9z" fill="#38bdf8"/></svg>
-                            </span>
-                            <div>No activities planned for this day</div>
+                          <div className="text-center p-8 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-300 dark:border-gray-700">
+                            <div className="flex flex-col items-center">
+                              <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-2">
+                                <CalendarIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                              </div>
+                              <p className="text-gray-500 dark:text-gray-400 mb-4">No activities planned for this day</p>
+                              <button
+                                onClick={() => {
+                                  setViewMode('grid');
+                                  setSelectedDayId(day.id);
+                                }}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm hover:shadow flex items-center gap-2"
+                              >
+                                <PlusCircleIcon className="w-5 h-5" />
+                                <span>Add Activity</span>
+                              </button>
+                            </div>
                           </div>
                         ) : (
-                          day.activities.map((activity, activityIndex) => (
-                            <div key={activity.id} className="p-3 rounded-lg bg-white/80 dark:bg-gray-800 shadow-sm flex gap-3 items-start border border-blue-100 dark:border-gray-700">
-                              <div className="p-2 rounded-full bg-sky-100 dark:bg-blue-900">
-                                {(() => {
-                                  const IconComponent = categoryIcons[activity.category] || GlobeAltIcon;
-                                  return <IconComponent className="w-5 h-5 text-sky-500 dark:text-blue-400" />;
-                                })()}
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-800 dark:text-white mb-1">{activity.title}</h4>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                  <ClockIcon className="w-4 h-4" />
-                                  <span>{activity.time}</span>
-                                  {activity.location && (
-                                    <>
-                                      <MapPinIcon className="w-4 h-4 text-red-500 dark:text-red-400" />
-                                      <span>{activity.location}</span>
-                                    </>
-                                  )}
+                          <>
+                            {day.activities.map((activity, activityIndex) => {
+                              const IconComponent = categoryIcons[activity.category] || GlobeAltIcon;
+                              const categoryColor = 
+                                activity.category === 'lodging' ? 'blue' :
+                                activity.category === 'food' ? 'rose' :
+                                activity.category === 'attraction' ? 'green' :
+                                activity.category === 'activity' ? 'teal' :
+                                activity.category === 'transport' ? 'purple' :
+                                activity.category === 'shopping' ? 'amber' :
+                                activity.category === 'event' ? 'pink' :
+                                activity.category === 'meeting' ? 'indigo' :
+                                activity.category === 'work' ? 'yellow' : 'gray';
+                              
+                              return (
+                                <div 
+                                  key={activity.id} 
+                                  className={`p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border-l-4 ${
+                                    activity.isCompleted 
+                                      ? 'border-gray-300 dark:border-gray-600 opacity-70' 
+                                      : `border-${categoryColor}-500`
+                                  } hover:shadow-md transition-all duration-200`}
+                                >
+                                  <div className="flex gap-4 items-start">
+                                    <div className={`p-3 rounded-full ${
+                                      activity.isCompleted
+                                        ? 'bg-gray-100 dark:bg-gray-700'
+                                        : `bg-${categoryColor}-100 dark:bg-${categoryColor}-900/30`
+                                    }`}>
+                                      <IconComponent className={`w-6 h-6 ${
+                                        activity.isCompleted
+                                          ? 'text-gray-400 dark:text-gray-500'
+                                          : `text-${categoryColor}-600 dark:text-${categoryColor}-400`
+                                      }`} />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className={`font-medium text-lg ${
+                                          activity.isCompleted 
+                                            ? 'line-through text-gray-500 dark:text-gray-400' 
+                                            : 'text-gray-800 dark:text-white'
+                                        }`}>
+                                          {activity.title}
+                                        </h4>
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            onClick={() => {
+                                              updateActivity(day.id, activity.id, {
+                                                isCompleted: !activity.isCompleted
+                                              });
+                                            }}
+                                            className={`p-1 rounded-full ${
+                                              activity.isCompleted
+                                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                            } hover:opacity-80`}
+                                            title={activity.isCompleted ? "Mark as incomplete" : "Mark as complete"}
+                                          >
+                                            <CheckIcon className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setViewMode('grid');
+                                              // This would need additional logic to focus the activity for editing
+                                            }}
+                                            className="p-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:opacity-80"
+                                            title="Edit activity"
+                                          >
+                                            <PencilIcon className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              showConfirmToast(
+                                                'Delete Activity',
+                                                `Are you sure you want to delete "${activity.title}"?`,
+                                                () => removeActivity(day.id, activity.id),
+                                                null
+                                              );
+                                            }}
+                                            className="p-1 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 hover:opacity-80"
+                                            title="Delete activity"
+                                          >
+                                            <TrashIcon className="w-4 h-4" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm">
+                                        <div className="flex items-center text-gray-600 dark:text-gray-300">
+                                          <ClockIcon className="w-4 h-4 mr-1" />
+                                          <span>{activity.time}</span>
+                                        </div>
+                                        
+                                        {activity.location && (
+                                          <div className="flex items-center text-gray-600 dark:text-gray-300">
+                                            <MapPinIcon className="w-4 h-4 mr-1 text-red-500 dark:text-red-400" />
+                                            <span>{activity.location}</span>
+                                          </div>
+                                        )}
+                                        
+                                        <div className="flex items-center">
+                                          {getTimezoneIcon(activity)}
+                                          <span className="ml-1 text-gray-500 dark:text-gray-400 text-xs">
+                                            {activity.timezone === 'destination' ? 'Destination time' : 
+                                             activity.timezone === 'home' ? 'Home time' : 'Local time'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      
+                                      {activity.notes && (
+                                        <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm text-gray-600 dark:text-gray-300 border-l-2 border-gray-300 dark:border-gray-600">
+                                          {activity.notes}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                {activity.notes && (
-                                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{activity.notes}</p>
-                                )}
-                              </div>
+                              );
+                            })}
+                            <div className="flex justify-center mt-4">
+                              <button
+                                onClick={() => {
+                                  setViewMode('grid');
+                                  setSelectedDayId(day.id);
+                                }}
+                                className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2"
+                              >
+                                <PlusCircleIcon className="w-5 h-5" />
+                                <span>Add More Activities</span>
+                              </button>
                             </div>
-                          ))
+                          </>
                         )}
                       </div>
-                      <button
-                        onClick={() => {
-                          setViewMode('grid');
-                          setSelectedDayId(null);
-                        }}
-                        className="w-full mt-4 py-2 text-center btn btn-secondary hover-lift"
-                      >
-                        <PlusCircleIcon className="w-5 h-5 inline mr-2" />
-                        Add Activity
-                      </button>
                     </div>
                   )}
                 </div>

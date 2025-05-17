@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { useTrip } from '../context/TripContext';
+import { showConfirmToast } from './CustomToast';
+import LocationTimezoneInput from './LocationTimezoneInput';
 
 // Import Heroicons
 import {
@@ -79,8 +81,20 @@ const ActivityCard = ({ activity, dayId, index }) => {
     }));
   };
   
+  const handleLocationTimezoneChange = (field, value) => {
+    setEditedActivity(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
   const handleDelete = () => {
-    removeActivity(dayId, activity.id);
+    showConfirmToast(
+      'Delete Activity',
+      `Are you sure you want to delete "${activity.title}"?`,
+      () => removeActivity(dayId, activity.id),
+      null
+    );
   };
   
   const toggleComplete = () => {
@@ -187,32 +201,12 @@ const ActivityCard = ({ activity, dayId, index }) => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={editedActivity.location || ''}
-                    onChange={handleChange}
-                    placeholder="Activity location"
-                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Timezone</label>
-                  <select
-                    name="timezone"
-                    value={editedActivity.timezone || 'local'}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value="local">Local Time</option>
-                    <option value="destination">Destination Time</option>
-                    <option value="home">Home Time</option>
-                  </select>
-                </div>
-              </div>
+              {/* Integrated location and timezone input */}
+              <LocationTimezoneInput 
+                location={editedActivity.location || ''}
+                timezone={editedActivity.timezone || 'local'}
+                onChange={handleLocationTimezoneChange}
+              />
               
               <div className="mb-3">
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</label>
@@ -242,7 +236,6 @@ const ActivityCard = ({ activity, dayId, index }) => {
               </div>
             </div>
           ) : (
-            // <div className="p-4 bg-gradient-to-br dark:from-[#4b6cb7] dark:to-[#182848]">
             <div className="p-4 bg-gradient-to-br from-orange-50 via-indigo-100 to-teal-100 dark:from-[#2c3e50] dark:to-[#4ca1af] hover:scale-[1.05] dark:border dark:border-gray-600 dark:hover:border-teal-600 rounded-xl transiton-ease-in-out duration-200">
               <div className="flex justify-between items-start">
                 <div className="flex items-start gap-3">

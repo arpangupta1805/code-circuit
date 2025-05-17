@@ -11,6 +11,8 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import NewTripForm from './NewTripForm';
+import DefaultTripButton from './DefaultTripButton';
+import { showConfirmToast } from './CustomToast';
 
 const TripSidebar = ({ onClose }) => {
   const { trips, currentTripId, setCurrentTripId, deleteTrip } = useTrip();
@@ -27,9 +29,12 @@ const TripSidebar = ({ onClose }) => {
   
   const handleDeleteTrip = (e, tripId) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this trip?')) {
-      deleteTrip(tripId);
-    }
+    showConfirmToast(
+      'Delete Trip',
+      'Are you sure you want to delete this trip? This action cannot be undone.',
+      () => deleteTrip(tripId),
+      null
+    );
   };
   
   return (
@@ -82,7 +87,7 @@ const TripSidebar = ({ onClose }) => {
         <div className="flex-1 overflow-y-auto p-2">
           {trips.length === 0 ? (
             <div className="text-center p-4 text-gray-500 dark:text-gray-400">
-              {!isCollapsed && "No trips yet. Create your first trip!"}
+              {!isCollapsed && "No trips yet. Create your first trip or load an example trip!"}
               {isCollapsed && <GlobeAltIcon className="w-6 h-6 mx-auto" />}
             </div>
           ) : (
@@ -140,12 +145,15 @@ const TripSidebar = ({ onClose }) => {
                 </li>
               ))}
             </ul>
-            
           )}
         </div>
         
-        {isCollapsed && (
-          <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700 space-y-2">
+          {/* Default example trip button */}
+          <DefaultTripButton isCollapsed={isCollapsed} />
+          
+          {/* New trip button for collapsed mode */}
+          {isCollapsed && (
             <button
               onClick={() => setIsCreatingTrip(true)}
               className="w-full p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
@@ -157,8 +165,8 @@ const TripSidebar = ({ onClose }) => {
                 </span>
               </div>
             </button>
-          </div>
-        )}
+          )}
+        </div>
         <div className="text-gray-400 p-3 text-center text-sm flex justify-center items-center gap-2">
           {!isCollapsed && (
             <span>Drag and Drop Activity cards to reschedule.</span>
