@@ -145,10 +145,10 @@ const ActivityCard = ({ activity, dayId, index }) => {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`relative mb-3 rounded-xl shadow-card border border-blue-100 dark:border-gray-700 transition-all duration-200 border-l-4 ${categoryBorders[activity.category] || 'border-gray-300'} ${
+          className={`relative mb-3 rounded-xl shadow-card border border-blue-100 dark:border-gray-700/50 transition-all duration-200 border-l-4 ${categoryBorders[activity.category] || 'border-gray-300'} ${
             activity.isCompleted 
-              ? 'bg-blue-50 dark:bg-gray-800 opacity-75' 
-              : 'bg-white dark:bg-gray-700'
+              ? 'bg-blue-50 dark:bg-gray-800/80 opacity-75' 
+              : 'bg-white dark:bg-gray-700/90'
           } ${
             snapshot.isDragging
               ? 'shadow-card-hover scale-105 z-50'
@@ -163,29 +163,29 @@ const ActivityCard = ({ activity, dayId, index }) => {
                   name="title"
                   value={editedActivity.title}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   placeholder="Activity title"
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Time</label>
+                  <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Time</label>
                   <input
                     type="time"
                     name="time"
                     value={editedActivity.time}
                     onChange={handleChange}
-                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                  <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Category</label>
                   <select
                     name="category"
                     value={editedActivity.category}
                     onChange={handleChange}
-                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   >
                     <option value="lodging">Lodging</option>
                     <option value="food">Food</option>
@@ -209,12 +209,12 @@ const ActivityCard = ({ activity, dayId, index }) => {
               />
               
               <div className="mb-3">
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</label>
+                <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Notes</label>
                 <textarea
                   name="notes"
                   value={editedActivity.notes}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   rows="2"
                   placeholder="Add notes here..."
                 />
@@ -223,97 +223,88 @@ const ActivityCard = ({ activity, dayId, index }) => {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                  className="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEditToggle}
-                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  className="px-3 py-1 text-sm bg-blue-500 dark:bg-blue-600 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
                 >
                   Save
                 </button>
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-gradient-to-br from-orange-50 via-indigo-100 to-teal-100 dark:from-[#2c3e50] dark:to-[#4ca1af] hover:scale-[1.05] dark:border dark:border-gray-600 dark:hover:border-teal-600 rounded-xl transiton-ease-in-out duration-200">
+            <div className="p-4 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 dark:from-gray-800/90 dark:via-gray-700/80 dark:to-gray-800/90 hover:scale-[1.02] dark:border-t dark:border-r dark:border-b dark:border-gray-600/30 dark:hover:border-blue-900/50 rounded-xl transition-all duration-200 backdrop-blur-sm">
               <div className="flex justify-between items-start">
                 <div className="flex items-start gap-3">
                   <div 
                     className={`p-2 rounded-full ${
-                      activity.isCompleted ? 'bg-gray-200 dark:bg-gray-600' : 'bg-blue-100 dark:bg-blue-900'
+                      activity.isCompleted 
+                        ? 'bg-gray-200 dark:bg-gray-600/70' 
+                        : 'bg-blue-100 dark:bg-blue-900/50 dark:border dark:border-blue-800/50'
                     }`}
                   >
-                    <IconComponent className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <IconComponent className={`w-5 h-5 ${
+                      activity.isCompleted 
+                        ? 'text-gray-500 dark:text-gray-400' 
+                        : 'text-blue-600 dark:text-blue-400'
+                    }`} />
                   </div>
                   <div>
                     <h3 className={`font-medium ${activity.isCompleted ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-white'}`}>
                       {activity.title}
                     </h3>
-                    
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        {getTimezoneIcon()}
-                        <span className="ml-1">{getFormattedTime()}</span>
-                      </div>
-                      
-                      {activity.location && (
-                        <div className="flex items-center">
-                          <MapPinIcon className="w-4 h-4 text-red-500 dark:text-red-400" />
-                          <span className="ml-1">{activity.location}</span>
-                        </div>
-                      )}
-                      
-                      {/* Mock weather indicator - in real app this would fetch data */}
-                      <div className="flex items-center" title="Weather forecast">
-                        {getWeatherIcon()}
-                      </div>
+                    <div className="flex items-center mt-1 text-sm text-gray-600 dark:text-gray-300">
+                      {/* <ClockIcon className="w-4 h-4 mr-1 text-blue-500 dark:text-blue-400" /> */}
+                      <span className="ml-1">{getTimezoneIcon()}</span>
+                      <span className="ml-1">{getFormattedTime()}</span>
                     </div>
+                    
+                    {activity.location && (
+                      <div className="flex items-center mt-1 text-sm text-gray-600 dark:text-gray-300">
+                        <MapPinIcon className="w-4 h-4 mr-1 text-red-500 dark:text-red-400" />
+                        <span>{activity.location}</span>
+                      </div>
+                    )}
+                    
+                    {activity.notes && (
+                      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800/70 border-l-2 border-gray-300 dark:border-gray-600 rounded text-sm text-gray-600 dark:text-gray-300">
+                        {activity.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-1">
-                  <button 
+                <div className="flex flex-col gap-1">
+                  <button
                     onClick={toggleComplete}
-                    className="p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-300 transition-colors"
+                    className={`p-1.5 rounded-full ${
+                      activity.isCompleted
+                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800/70 dark:text-gray-400 dark:border dark:border-gray-700'
+                    } hover:opacity-80 transition-colors`}
+                    title={activity.isCompleted ? "Mark as incomplete" : "Mark as complete"}
                   >
-                    <div className="relative group">
-                        <CheckIcon className={`w-5 h-5 ${activity.isCompleted ? 'text-green-500' : 'text-gray-900'} cursor-pointer`} />
-                        <span className="absolute bottom-[-4vh] left-1/2 -translate-x-1/2 w-max bg-teal-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 whitespace-nowrap">
-                            Completed
-                        </span>
-                    </div>
+                    <CheckIcon className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     onClick={handleEditToggle}
-                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="p-1.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800/70 dark:text-gray-400 dark:border dark:border-gray-700 hover:opacity-80 transition-colors"
+                    title="Edit activity"
                   >
-                    <div className="relative group">
-                        <PencilIcon className="w-5 h-5 text-gray-800" />
-                        <span className="absolute bottom-[2.5vh] left-1/2 -translate-x-1/2 w-max bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 whitespace-nowrap">
-                            Edit
-                        </span>
-                    </div>
+                    <PencilIcon className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     onClick={handleDelete}
-                    className="p-1 rounded-full hover:bg-red-100 hover:text-red-700 transition-colors"
+                    className="p-1.5 rounded-full bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400 hover:opacity-80 transition-colors"
+                    title="Delete activity"
                   >
-                    <div className="relative group">
-                    <TrashIcon className="w-5 h-5 text-red-500 " />
-                    <span className="absolute bottom-[-4vh] left-1/2 -translate-x-1/2 w-max bg-red-300 text-black text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 whitespace-nowrap">
-                        Delete
-                    </span>
-                    </div>
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              
-              {activity.notes && (
-                <div className="mt-3 pl-10 text-sm text-gray-600 dark:text-gray-300">
-                  <p>{activity.notes}</p>
-                </div>
-              )}
             </div>
           )}
         </div>

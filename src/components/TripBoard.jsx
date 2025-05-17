@@ -341,7 +341,10 @@ const TripBoard = () => {
     <div className="flex flex-col h-full">
       {/* Header with trip info */}
       <div style={{backgroundImage: `url('https://static.vecteezy.com/system/resources/thumbnails/046/605/934/small_2x/sky-with-a-beautiful-sunset-a-blue-and-orange-sky-with-soft-clouds-a-sky-background-photo.jpg')` }}
-      className={`p-4 bg-no-repeat bg-cover  shadow-md mb-4 rounded-lg relative overflow-hidden transition-all duration-300 ${isEditingTitle ? '' : 'bg-gradient-to-br from-violet-200 via-gray-300 to-indigo-300 dark:bg-gray-700'}`}>
+      className={`p-4 bg-no-repeat bg-cover shadow-md mb-4 rounded-lg relative overflow-hidden transition-all duration-300 ${isEditingTitle ? '' : 'bg-gradient-to-br from-violet-200 via-gray-300 to-indigo-300 dark:from-gray-800/80 dark:via-gray-900/80 dark:to-indigo-900/80'}`}>
+        
+        {/* Dark overlay for better text readability in dark mode */}
+        <div className="absolute inset-0 bg-black/0 dark:bg-black/40 transition-colors duration-300"></div>
         
         <div className="flex flex-wrap justify-between items-center relative z-10">
           <div className="flex-1">
@@ -352,31 +355,31 @@ const TripBoard = () => {
                   name="name"
                   value={editedTrip.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 text-xl font-bold border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-xl font-bold border rounded dark:bg-gray-700/90 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Trip name"
                 />
                 
                 <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3">
                   <div className="flex-1">
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">From</label>
+                    <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">From</label>
                     <input
                       type="text"
                       name="departureLocation"
                       value={editedTrip.departureLocation}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border rounded dark:bg-gray-700/90 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Departure location"
                     />
                   </div>
                   
                   <div className="flex-1 relative">
-                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">To</label>
+                    <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">To</label>
                     <input
                       type="text"
                       name="destination"
                       value={editedTrip.destination}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border rounded dark:bg-gray-700/90 dark:border-gray-600 dark:text-white transition-all duration-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Destination"
                       list="destination-suggestions"
                     />
@@ -420,23 +423,23 @@ const TripBoard = () => {
             ) : (
               <div className="flex items-start">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800 dark:text-black animate-fade-in">
+                  <h1 className="text-2xl font-bold text-gray-800 dark:text-white animate-fade-in drop-shadow-sm dark:drop-shadow-md">
                     {currentTrip.name}
                   </h1>
                   
                   
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="flex font-bold items-center text-indigo-800 dark:text-indigo-800 font-medium">
+                    <span className="flex font-bold items-center text-indigo-800 dark:text-indigo-300 font-medium">
                       <PaperAirplaneIcon className="w-4 h-4 mr-1 transform -rotate-45" />
                       {currentTrip.departureLocation || 'Home'}
                     </span>
                     <span className="mx-2 text-gray-400 dark:text-gray-500">→</span>
-                    <span className="flex items-center font-bold text-red-600 dark:text-red-800 font-medium">
+                    <span className="flex items-center font-bold text-red-600 dark:text-red-300 font-medium">
                       <MapPinIcon className="w-4 h-4 mr-1" />
                       {currentTrip.destination}
                     </span>
                   </div>
-                  <div className="flex items-center mt-2 text-sm dark:text-black font-bold animate-fade-in animation-delay-200">
+                  <div className="flex items-center mt-2 text-sm dark:text-gray-200 font-bold animate-fade-in animation-delay-200">
                     <CalendarIcon className="w-4 h-4 mr-1" />
                     <span>
                       {format(new Date(currentTrip.startDate), 'MMM d')} - {format(new Date(currentTrip.endDate), 'MMM d, yyyy')}
@@ -445,7 +448,7 @@ const TripBoard = () => {
                 </div>
                 <button
                   onClick={() => setIsEditingTitle(true)}
-                  className="ml-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="ml-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
                   title="Edit trip details"
                 >
                   <PencilIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -456,7 +459,7 @@ const TripBoard = () => {
           
           <div className="flex items-center gap-3 mt-3 sm:mt-0">
             {/* View mode toggle */}
-            <div className="inline-flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 shadow-inner">
+            <div className="inline-flex bg-gray-100 dark:bg-gray-800/70 rounded-lg p-1 shadow-inner">
               <button
                 onClick={() => {
                   setViewMode('list');
@@ -464,7 +467,7 @@ const TripBoard = () => {
                 }}
                 className={`p-2 rounded-md transition-colors duration-200 ${
                   viewMode === 'list' 
-                    ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400' 
+                    ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' 
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                 }`}
                 title="List view"
@@ -478,7 +481,7 @@ const TripBoard = () => {
                 }}
                 className={`p-2 rounded-md transition-colors duration-200 ${
                   viewMode === 'grid' 
-                    ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400' 
+                    ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400' 
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                 }`}
                 title="Grid view"
@@ -489,7 +492,7 @@ const TripBoard = () => {
           
             <button
               onClick={exportToPDF}
-              className="flex items-center gap-1 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-md"
+              className="flex items-center gap-1 px-3 py-2 bg-indigo-600 dark:bg-indigo-700 text-white rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-md"
               title="Export as PDF"
             >
               <ArrowDownOnSquareIcon className="w-5 h-5" />
@@ -498,7 +501,7 @@ const TripBoard = () => {
             
             <button
               onClick={() => setIsDatePickerOpen(true)}
-              className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all duration-300 transform hover:scale-105 shadow-md"
+              className="flex items-center gap-1 px-3 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-300 transform hover:scale-105 shadow-md"
               title="Add a new day"
             >
               <PlusCircleIcon className="w-5 h-5" />
@@ -509,7 +512,7 @@ const TripBoard = () => {
         
         {/* Date picker for adding new day */}
         {isDatePickerOpen && (
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg animate-fade-in">
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg animate-fade-in">
             <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-3">Add New Day</h3>
             <div className="flex flex-wrap items-end gap-4">
               <div>
@@ -517,7 +520,7 @@ const TripBoard = () => {
                 <DatePicker
                   selected={newDayDate}
                   onChange={(date) => setNewDayDate(date)}
-                  className="px-3 py-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-2">
@@ -529,7 +532,7 @@ const TripBoard = () => {
                 </button>
                 <button
                   onClick={handleAddDay}
-                  className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300"
+                  className="px-3 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors duration-300"
                 >
                   Add Day
                 </button>

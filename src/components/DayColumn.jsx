@@ -112,22 +112,22 @@ const weather = getWeatherInfo();
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200  dark:from-[#0f2027] dark:via-[#203a43] dark:to-[#2c5364] w-96 h-full bg-white dark:bg-gray-900 rounded-2xl shadow-card dark:border-gray-700 flex flex-col transition-all duration-300 ${
+          className={`flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-800 dark:to-gray-900 dark:border dark:border-gray-700/50 w-96 h-full rounded-2xl shadow-card flex flex-col transition-all duration-300 ${
             snapshot.isDragging ? 'scale-[1.02] shadow-lg z-50' : ''
           } ${isDragging ? 'opacity-90' : ''} hover:shadow-card-hover`}
         >
           {/* Day header */}
           <div
             {...provided.dragHandleProps}
-            className="flex justify-between items-center px-4 py-2 rounded-t-lg text-blue-900 bg-gradient-to-br from-sky-100 via-blue-100 to-blue-200 dark:bg-gray-800 dark:from-transparent dark:via-transparent dark:to-transparent dark:text-gray-100 transition-colors duration-200"
+            className="flex justify-between items-center px-4 py-3 rounded-t-lg text-blue-900 bg-gradient-to-br from-sky-100 via-blue-100 to-blue-200 dark:from-gray-700/50 dark:via-gray-800 dark:to-gray-700/80 dark:text-gray-100 transition-colors duration-200 border-b border-blue-200/50 dark:border-gray-600/30"
           >
             <div className="flex-1 flex items-center">
               <div
                 {...provided.dragHandleProps}
-                className="mr-2 cursor-move p-1 rounded-md hover:bg-sky-100 dark:hover:bg-gray-700 transition-colors"
+                className="mr-2 cursor-move p-1 rounded-md hover:bg-sky-100 dark:hover:bg-gray-700/70 transition-colors"
                 title="Drag to reorder days"
               >
-                <ArrowsUpDownIcon className="w-5 h-5 text-sky-400 dark:text-gray-400" />
+                <ArrowsUpDownIcon className="w-5 h-5 text-sky-400 dark:text-blue-400" />
               </div>
               <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
                 {formatDayDate(day.date)}
@@ -135,7 +135,7 @@ const weather = getWeatherInfo();
             </div>
             <button 
               onClick={handleDeleteDay}
-              className="p-1 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
+              className="p-1 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
               title="Delete day"
             >
               <TrashIcon className="w-5 h-5" />
@@ -144,7 +144,7 @@ const weather = getWeatherInfo();
           
           {/* Weather info - would be real data in production */}
           <div className="mt-2 flex items-center gap-2 px-4">
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full bg-sky-100 dark:bg-gray-800 shadow-sm ${weather.color}`}>
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full bg-sky-100 dark:bg-gray-700/70 shadow-sm ${weather.color} dark:text-gray-100`}>
               {weather.icon}
               <span className="text-sm font-medium">{weather.temp}</span>
             </div>
@@ -175,7 +175,7 @@ const weather = getWeatherInfo();
                 
                 {/* Add activity form */}
                 {isAddingActivity ? (
-                  <div className="p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md">
+                  <div className="p-4 bg-white dark:bg-gray-700/90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 dark:border-gray-600/50">
                     <h3 className="font-medium text-gray-800 dark:text-white mb-3">Add New Activity</h3>
                     
                     <div className="mb-3">
@@ -185,33 +185,33 @@ const weather = getWeatherInfo();
                         value={newActivity.title}
                         onChange={handleChange}
                         placeholder="Activity title"
-                        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div>
-                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Time</label>
+                        <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Time</label>
                         <input
                           type="time"
                           name="time"
                           value={newActivity.time}
                           onChange={handleChange}
-                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                        <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Category</label>
                         <select
                           name="category"
                           value={newActivity.category}
                           onChange={handleChange}
-                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                          className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                         >
-                          <option value="lodging">Lodging</option>
-                          <option value="food">Food</option>
-                          <option value="attraction">Attraction</option>
                           <option value="activity">Activity</option>
+                          <option value="attraction">Attraction</option>
+                          <option value="food">Food</option>
+                          <option value="lodging">Lodging</option>
                           <option value="transport">Transport</option>
                           <option value="shopping">Shopping</option>
                           <option value="event">Event</option>
@@ -222,47 +222,51 @@ const weather = getWeatherInfo();
                       </div>
                     </div>
                     
-                    {/* Integrated location and timezone input */}
-                    <LocationTimezoneInput 
+                    <LocationTimezoneInput
                       location={newActivity.location}
                       timezone={newActivity.timezone}
                       onChange={handleLocationTimezoneChange}
                     />
                     
                     <div className="mb-3">
-                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</label>
+                      <label className="block text-xs text-gray-500 dark:text-gray-300 mb-1">Notes (optional)</label>
                       <textarea
                         name="notes"
                         value={newActivity.notes}
                         onChange={handleChange}
+                        placeholder="Add notes..."
+                        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                         rows="2"
-                        placeholder="Add notes here..."
-                        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                      />
+                      ></textarea>
                     </div>
                     
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={handleAddActivityToggle}
-                        className="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                        className="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleAddActivity}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        disabled={!newActivity.title}
+                        className={`px-3 py-1 text-sm rounded ${
+                          newActivity.title
+                            ? 'bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-500'
+                            : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        } transition-colors`}
                       >
-                        Add Activity
+                        Add
                       </button>
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={handleAddActivityToggle}
-                    className="mt-2 w-full p-3 rounded-lg border-2 border-dashed border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-colors"
+                    className="mt-2 w-full py-2 flex items-center justify-center gap-1 text-sm bg-white dark:bg-gray-700/70 hover:bg-blue-50 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-gray-600/50 transition-colors shadow-sm"
                   >
-                    <PlusCircleIcon className="w-5 h-5 mr-2" />
-                    Add Activity
+                    <PlusIcon className="w-4 h-4" />
+                    <span>Add Activity</span>
                   </button>
                 )}
               </div>
