@@ -163,12 +163,6 @@ const TripSidebar = ({ onClose }) => {
           {!isCollapsed && (
             <span>Drag and Drop Activity cards to reschedule.</span>
           )}
-          <div className="relative group">
-            <InformationCircleIcon className="h-6 w-6 cursor-pointer text-center flec justify-center item-center" />
-              <span className='absolute bottom-full mb-1 left-1/2 -translate-x-[-0.8vw] w-[220px] bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 text-left'>
-                Drag and drop bug: switch tabs once to reactivate drag-and-drop functionality.
-              </span>
-          </div>
         </div>
       </div>
       
